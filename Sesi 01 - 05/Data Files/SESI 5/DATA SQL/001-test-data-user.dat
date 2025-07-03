@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DataFileEntity>
+   <description>test data user</description>
+   <name>001-test-data-user</name>
+   <tag></tag>
+   <containsHeaders>true</containsHeaders>
+   <csvSeperator></csvSeperator>
+   <dataFileGUID>103483c4-e450-4ceb-ba2b-4e6303c3a4e7</dataFileGUID>
+   <dataSourceUrl>jdbc:mysql://localhost:3306/test</dataSourceUrl>
+   <driver>DBData</driver>
+   <driverClassName></driverClassName>
+   <isInternalPath>false</isInternalPath>
+   <password>cm9qYW00NTY=</password>
+   <query>SELECT * FROM `user-credential`</query>
+   <secureUserAccount>true</secureUserAccount>
+   <sheetName></sheetName>
+   <user>jampirojam</user>
+   <usingGlobalDBSetting>false</usingGlobalDBSetting>
+</DataFileEntity>

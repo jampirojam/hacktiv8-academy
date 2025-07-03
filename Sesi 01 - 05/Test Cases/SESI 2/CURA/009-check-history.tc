@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TestCaseEntity>
+   <description>check history appointment</description>
+   <name>009-check-history</name>
+   <tag>cura</tag>
+   <comment></comment>
+   <testCaseGuid>a505f1e1-c2f5-4c45-87af-7cb742fc2eca</testCaseGuid>
+</TestCaseEntity>

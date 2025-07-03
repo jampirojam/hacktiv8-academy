@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TestCaseEntity>
+   <description>uncheck readmission</description>
+   <name>007-make-appointment</name>
+   <tag>cura</tag>
+   <comment></comment>
+   <testCaseGuid>5c3ebc9f-ae3d-4e85-871c-2c243358b14a</testCaseGuid>
+</TestCaseEntity>

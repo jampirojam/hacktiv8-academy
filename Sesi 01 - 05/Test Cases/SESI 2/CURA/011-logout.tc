@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TestCaseEntity>
+   <description>check profile</description>
+   <name>011-logout</name>
+   <tag>cura</tag>
+   <comment></comment>
+   <testCaseGuid>bc8f0c59-347c-4eaf-a0f9-e4ffafad90a1</testCaseGuid>
+</TestCaseEntity>

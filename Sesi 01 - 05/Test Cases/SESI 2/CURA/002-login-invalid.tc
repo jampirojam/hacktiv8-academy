@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TestCaseEntity>
+   <description>login with valid username only</description>
+   <name>002-login-invalid</name>
+   <tag>cura</tag>
+   <comment></comment>
+   <testCaseGuid>18435a1b-ac2c-48d3-a627-89a530870677</testCaseGuid>
+</TestCaseEntity>

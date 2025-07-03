@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TestCaseEntity>
+   <description>check history</description>
+   <name>003-check-history</name>
+   <tag>cura-suites</tag>
+   <comment></comment>
+   <testCaseGuid>5e98ce99-0199-482c-baf7-002317d80a3d</testCaseGuid>
+</TestCaseEntity>

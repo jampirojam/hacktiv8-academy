@@ -1,0 +1,30 @@
+{
+  "keywordFileContentHash": "0B7BE46FBE5850A85D229D6157AB2416",
+  "keywordClasses": [
+    {
+      "name": "packey.KeyOne",
+      "keywordMethods": [
+        {
+          "name": "keyOneTest",
+          "parameters": [
+            {
+              "name": "s",
+              "initialExpression": "",
+              "type": {
+                "fullClassName": "java.lang.String",
+                "unresolvedClassName": "String",
+                "isArray": false,
+                "isGnericsPlaceHolder": false,
+                "hasImmutableClassName": false,
+                "genericsTypes": [],
+                "errorOnParsing": false
+              }
+            }
+          ],
+          "javadoc": ""
+        }
+      ]
+    }
+  ],
+  "javadocParsed": true
+}
