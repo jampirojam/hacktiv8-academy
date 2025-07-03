@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TestCaseEntity>
+   <description>fill out all</description>
+   <name>006-make-appointment</name>
+   <tag>cura</tag>
+   <comment></comment>
+   <testCaseGuid>f73938b0-f3b3-4da5-b02a-1d6adfa9626d</testCaseGuid>
+</TestCaseEntity>

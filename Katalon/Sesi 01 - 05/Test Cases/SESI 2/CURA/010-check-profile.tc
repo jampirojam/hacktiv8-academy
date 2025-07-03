@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TestCaseEntity>
+   <description>check profile</description>
+   <name>010-check-profile</name>
+   <tag>cura</tag>
+   <comment></comment>
+   <testCaseGuid>c285bb63-4594-4244-8c16-d6ab59b7ba05</testCaseGuid>
+</TestCaseEntity>

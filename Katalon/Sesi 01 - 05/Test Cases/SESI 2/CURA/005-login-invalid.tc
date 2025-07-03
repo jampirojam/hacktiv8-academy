@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TestCaseEntity>
+   <description>blank</description>
+   <name>005-login-invalid</name>
+   <tag>cura</tag>
+   <comment></comment>
+   <testCaseGuid>ecdf0a66-76da-4443-b445-f5e7b0edf705</testCaseGuid>
+</TestCaseEntity>
