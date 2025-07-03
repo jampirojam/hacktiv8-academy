@@ -1,0 +1,1 @@
+mvn archetype:generate -DgroupId={URL} -DartifactId={Nama Folder} -DarchetypeArtifactId=maven-archetype-quickstart -DinteractiveMode=false

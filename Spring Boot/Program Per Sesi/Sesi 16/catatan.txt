@@ -1,0 +1,692 @@
+
+ini sesi 16
+---
+
+latihan 1
+----
+
+latihan 2
+---
+
+parent pada pom >
+<parent>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-starter-parent</artifactId>
+  <version>2.1.6.RELEASE</version>
+  <relativePath/>		
+</parent>
+
+java pada pom >
+<properties>
+  <java.version>1.8</java.version>
+</properties>
+
+depedency pada pom >
+<dependency>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-starter-data-jpa</artifactId>
+</dependency>
+<dependency>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-starter-thymeleaf</artifactId>
+</dependency>
+<dependency>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-starter-web</artifactId>
+</dependency>
+<dependency>
+    <groupId>mysql</groupId>
+    <artifactId>mysql-connector-java</artifactId>
+</dependency>
+<dependency>
+  <groupId>org.projectlombok</groupId>
+  <artifactId>lombok</artifactId>
+  <optional>true</optional>
+</dependency>
+<dependency>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-starter-test</artifactId>
+  <scope>test</scope>
+</dependency>
+<dependency>
+  <groupId>org.flywaydb</groupId>
+  <artifactId>flyway-core</artifactId>
+</dependency>
+<dependency>
+  <groupId>io.github.jpenren</groupId>
+  <artifactId>thymeleaf-spring-data-dialect</artifactId>
+  <version>3.4.0</version>
+</dependency>
+<dependency>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-devtools</artifactId>
+  <scope>runtime</scope>
+  <optional>true</optional>
+</dependency>
+
+
+application properties > lokasi file berada di > src/main/resources/application.properties
+#Port
+server.port=8081
+
+#MySQL Connection
+spring.datasource.url=jdbc:mysql://localhost:3306/h8_mahasiswa?useLegacyDatetimeCode=false&serverTimezone=UTC //ganti db sesuaikan
+spring.datasource.username=root
+spring.datasource.password=root //isikan sesuai password
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+
+#Spring MVC
+spring.mvc.hiddenmethod.filter.enabled=true
+
+#Flyway
+spring.flyway.check-location=false
+spring.flyway.baseline-on-migrate=true
+spring.flyway.locations=classpath:db/migration
+	
+#JPA Properties
+spring.jpa.database-platform=org.hibernate.dialect.MySQL5Dialect
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.format_sql=true
+
+struktur folder dan file resources
+----
+src/main/resources/db/migration   //buat folder db > migration
+src/main/resources/static   //default folder resources
+src/main/resources/templates/index.html   //buat file index.html
+src/main/resources/templates/mahasiswa   //buat folder mahasiswa
+src/main/resources/templates/mahasiswa/form.html   //buat file form.html
+src/main/resources/templates/mahasiswa/detail_form.html   //buat file detail_form.html
+
+struktur folder pada main java
+----
+pada folder src/main/java
+terdapat package seperti berikut > com.example.spring (cek saat pembuata project di sesuaikan nama package)
+- com.example.spring //default package
+	> BelajarSpringApplication.java //default class saat buat projects
+  terdapat beberapa perintah yang di tambah di default class
+  
+  	@Bean
+    public SpringDataDialect springDataDialect() {
+        return new SpringDataDialect();
+    }
+    
+  > di taruh setelah syntax berikut : (di import library nya dengan cara mengarahkan ke syntax / hover mouse > nampil dialog > lalu import "disesuaikan")
+  	public static void main(String[] args) {
+			SpringApplication.run(BelajarSpringMahasiswaApplication.class, args);
+		}
+
+    
+  
+- com.example.spring.controller //buat folder entity pada controller
+	> MahasiswaController.java //buat class MahasiswaController
+  private final static Logger LOGGER = LoggerFactory.getLogger(MahasiswaController.class.getName());
+
+    @Autowired
+    private MahasiswaDao mahasiswaDao;
+
+    @GetMapping("/index")
+    public ModelMap getAll(Pageable pageable) {
+        return new ModelMap().addAttribute("mahasiswas", mahasiswaDao.findAll(pageable));
+    }
+
+    @GetMapping("/")
+    public String index() {
+        return "redirect:/index";
+    }
+
+    @GetMapping("/mahasiswa/form")
+    public ModelMap tampilFormedit(@RequestParam(required = false, value = "id") Mahasiswa mahasiswa) {
+        if (mahasiswa == null) {
+            mahasiswa = new Mahasiswa();
+        }
+        return new ModelMap().addAttribute("mahasiswa", mahasiswa);
+    }
+
+    @PostMapping("/mahasiswa/form")
+    public String editMahasiswa(@ModelAttribute @Valid Mahasiswa mahasiswa, BindingResult errors, SessionStatus status) {
+        LOGGER.info(mahasiswa.toString());
+        LOGGER.info(errors.toString());
+        LOGGER.info("" + errors.hasErrors());
+        LOGGER.info("" + errors.hasGlobalErrors());
+        if (errors.hasErrors())
+            return "/mahasiswa/form";
+        try {
+            mahasiswaDao.save(mahasiswa);
+            status.setComplete();
+            return "redirect:/index";
+        } catch (DataAccessException e) {
+            errors.reject("error.object", e.getMessage());
+            LOGGER.error(e.getMessage());
+            return "/mahasiswa/form";
+        }
+    }
+    
+    @GetMapping("/mahasiswa/detail_form")
+    public ModelMap tampilFormDetail(@RequestParam(required = false, value = "id") Mahasiswa mahasiswa) {
+        if (mahasiswa == null) {
+            mahasiswa = new Mahasiswa();
+        }
+        return new ModelMap().addAttribute("mahasiswa", mahasiswa);
+    }
+
+
+    @RequestMapping(value = "/mahasiswa/delete", method = {RequestMethod.DELETE, RequestMethod.GET})
+    public String hapusMahasiswa(String id) {
+    	Mahasiswa mahasiswa = mahasiswaDao.findById(id)
+    		      .orElseThrow(() -> new IllegalArgumentException("Invalid user Id:" + id));
+        mahasiswaDao.delete(mahasiswa);
+        return "redirect:/index";
+    }
+- com.example.spring.dao //buat folder entity pada dao
+	> MahasiswaDao.java //buat class MahasiswaDao
+  import org.springframework.data.repository.PagingAndSortingRepository;
+  import com.example.spring.entity.Mahasiswa;
+
+  public interface MahasiswaDao extends PagingAndSortingRepository<Mahasiswa, String> {
+  }
+  
+- com.example.spring.entity //buat folder entity pada package
+	> Mahasiswa.java //buat class Mahasiswa
+  
+  
+  
+catatan pada unit test berada pada folder src/test/java/com/example/spring/BelajarSpringApplicationTest.java
+jika terjadi error silahkan sesuaikan dengan code berikut > jika menggunakan spring 2.7.0 > menggunakan junit 5 atau (org.junit.jupiter.api.test)
+kita akan mengganti nya menjadi versi 2.1.6.RELEASE > jadi kita menurunkan versi junit nya.
+
+cek kode test > dan ganti seperti berikut > org.junit.Test
+
+    import org.junit.Test;
+    import org.junit.runner.RunWith;
+    import org.springframework.boot.test.context.SpringBootTest;
+    import org.springframework.test.context.junit4.SpringRunner;
+
+@RunWith(SpringRunner.class)
+@SpringBootTest
+public class BelajarSpringMahasiswaApplicationTests {
+
+	@Test
+	public void contextLoads() {
+	}
+
+}
+
+referensi penamaan tabel ada di halaman 20
+Jangan lupa menambahkan file sql tersebut pada direktori tersebut, selanjutnya untuk penamaan juga harus
+mengikuti flyway yaitu V<VERSION>__<NAME>.sql. Misalkan V1.0__init_tables.sql
+
+db/migration 
+ - V1.0__201908061400_init_tables.sql  //buat file di db/migration  > V1.0__201908061400_init_tables.sql
+
+CREATE TABLE IF NOT EXISTS mahasiswa(
+    id VARCHAR(40) NOT NULL,
+    nim VARCHAR(10) NOT NULL UNIQUE,
+    nama VARCHAR(50) NOT NULL,
+    ipk FLOAT(4,2) NOT NULL,
+    jurusan VARCHAR(25) NOT NULL,
+    PRIMARY KEY(id)
+)ENGINE=InnoDB;
+
+
+ - V1.1__201908051500_insert_data.sql //buat file di db/migration > V1.1__201908051500_insert_data.sql
+ 	INSERT INTO mahasiswa VALUES ('3f87c747-1cda-47ef-8ef0-63be2dee2db5','075410099','Noprianto',4.00,'Teknologi Informasi');
+	INSERT INTO mahasiswa VALUES ('9ba045f8-d51b-415a-b5c3-bb287acc72dc','075410100','Noureen Akhleema Shannum',3.99,'Teknologi Informasi');
+	INSERT INTO mahasiswa VALUES ('45cc6393-cc22-4dcf-a823-5dc7acb27322','075410101','Uwais',3.89,'Teknologi Informasi');
+  
+  
+  <?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.1.6.RELEASE</version>
+		<relativePath/>		
+	</parent>
+	
+	<groupId>com.example</groupId>
+	<artifactId>BelajarSpringMahasiswa</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	
+	<name>BelajarSpringMahasiswa</name>
+	<description>Demo project for Spring Boot</description>
+	
+	<properties>
+		<java.version>1.8</java.version>
+	</properties>
+	
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-thymeleaf</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+
+		<dependency>
+    		<groupId>mysql</groupId>
+    		<artifactId>mysql-connector-java</artifactId>
+		</dependency>
+
+        <dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.github.jpenren</groupId>
+            <artifactId>thymeleaf-spring-data-dialect</artifactId>
+            <version>3.4.0</version>
+        </dependency>
+        
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+			<scope>runtime</scope>
+			<optional>true</optional>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>
+
+
+--------
+
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+
+import org.hibernate.annotations.GenericGenerator;
+
+import lombok.Data;
+
+@Entity
+@Data
+@Table(name = "mahasiswa") 
+public class Mahasiswa {
+    @Id
+    @GeneratedValue(generator = "uuid2")
+    @GenericGenerator(name = "uuid2", strategy = "uuid2")
+    @Column(length = 64)
+    private String id;
+    
+    @NotNull
+    @NotBlank
+    @Column(name = "nim", unique = true)
+    private String nim;
+    
+    @NotNull
+    @NotBlank
+    @Column(name = "nama")
+    private String nama;
+    
+    @Column(name = "ipk")
+    private float ipk;
+    
+    @NotNull
+    @NotBlank
+    @Column(name = "jurusan")
+    private String jurusan;
+
+    
+}
+
+
+
+--------------------------------------------------------------------------------------------------------
+error nya
+
+
+2022-06-23 12:01:00.722  INFO 17756 --- [  restartedMain] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.21]
+2022-06-23 12:01:00.835  INFO 17756 --- [  restartedMain] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2022-06-23 12:01:00.836  INFO 17756 --- [  restartedMain] o.s.web.context.ContextLoader            : Root WebApplicationContext: initialization completed in 1513 ms
+2022-06-23 12:01:00.972  INFO 17756 --- [  restartedMain] o.f.c.internal.license.VersionPrinter    : Flyway Community Edition 5.2.4 by Boxfuse
+2022-06-23 12:01:01.053  INFO 17756 --- [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2022-06-23 12:01:01.222  INFO 17756 --- [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2022-06-23 12:01:01.224  INFO 17756 --- [  restartedMain] o.f.c.internal.database.DatabaseFactory  : Database: jdbc:mysql://localhost:3306/db_kampus (MySQL 5.5)
+2022-06-23 12:01:01.297  INFO 17756 --- [  restartedMain] o.f.core.internal.command.DbValidate     : Successfully validated 2 migrations (execution time 00:00.012s)
+2022-06-23 12:01:01.313  WARN 17756 --- [  restartedMain] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'flywayInitializer' defined in class path resource [org/springframework/boot/autoconfigure/flyway/FlywayAutoConfiguration$FlywayConfiguration.class]: Invocation of init method failed; nested exception is org.flywaydb.core.internal.exception.FlywaySqlException: 
+Unable to check whether schema `db_kampus` is empty
+---------------------------------------------------
+SQL State  : HY000
+Error Code : 1105
+Message    : Unknown error
+
+2022-06-23 12:01:01.314  INFO 17756 --- [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2022-06-23 12:01:01.320  INFO 17756 --- [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2022-06-23 12:01:01.322  INFO 17756 --- [  restartedMain] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2022-06-23 12:01:01.335  INFO 17756 --- [  restartedMain] ConditionEvaluationReportLoggingListener : 
+
+Error starting ApplicationContext. To display the conditions report re-run your application with 'debug' enabled.
+2022-06-23 12:01:01.339 ERROR 17756 --- [  restartedMain] o.s.boot.SpringApplication               : Application run failed
+
+org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'flywayInitializer' defined in class path resource [org/springframework/boot/autoconfigure/flyway/FlywayAutoConfiguration$FlywayConfiguration.class]: Invocation of init method failed; nested exception is org.flywaydb.core.internal.exception.FlywaySqlException: 
+Unable to check whether schema `db_kampus` is empty
+---------------------------------------------------
+SQL State  : HY000
+Error Code : 1105
+Message    : Unknown error
+
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1778) ~[spring-beans-5.1.8.RELEASE.jar:5.1.8.RELEASE]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:593) ~[spring-beans-5.1.8.RELEASE.jar:5.1.8.RELEASE]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:515) ~[spring-beans-5.1.8.RELEASE.jar:5.1.8.RELEASE]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:320) ~[spring-beans-5.1.8.RELEASE.jar:5.1.8.RELEASE]
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:222) ~[spring-beans-5.1.8.RELEASE.jar:5.1.8.RELEASE]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:318) ~[spring-beans-5.1.8.RELEASE.jar:5.1.8.RELEASE]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:199) ~[spring-beans-5.1.8.RELEASE.jar:5.1.8.RELEASE]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:307) ~[spring-beans-5.1.8.RELEASE.jar:5.1.8.RELEASE]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:199) ~[spring-beans-5.1.8.RELEASE.jar:5.1.8.RELEASE]
+	at org.springframework.context.support.AbstractApplicationContext.getBean(AbstractApplicationContext.java:1105) ~[spring-context-5.1.8.RELEASE.jar:5.1.8.RELEASE]
+	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:867) ~[spring-context-5.1.8.RELEASE.jar:5.1.8.RELEASE]
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:549) ~[spring-context-5.1.8.RELEASE.jar:5.1.8.RELEASE]
+	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:140) ~[spring-boot-2.1.6.RELEASE.jar:2.1.6.RELEASE]
+	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:742) [spring-boot-2.1.6.RELEASE.jar:2.1.6.RELEASE]
+	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:389) [spring-boot-2.1.6.RELEASE.jar:2.1.6.RELEASE]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:311) [spring-boot-2.1.6.RELEASE.jar:2.1.6.RELEASE]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1213) [spring-boot-2.1.6.RELEASE.jar:2.1.6.RELEASE]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1202) [spring-boot-2.1.6.RELEASE.jar:2.1.6.RELEASE]
+	at com.belajar.spring.BelajarSpringMahasiswaApplication.main(BelajarSpringMahasiswaApplication.java:12) [classes/:na]
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:1.8.0_333]
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62) ~[na:1.8.0_333]
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:1.8.0_333]
+	at java.lang.reflect.Method.invoke(Method.java:498) ~[na:1.8.0_333]
+	at org.springframework.boot.devtools.restart.RestartLauncher.run(RestartLauncher.java:49) [spring-boot-devtools-2.1.6.RELEASE.jar:2.1.6.RELEASE]
+Caused by: org.flywaydb.core.internal.exception.FlywaySqlException: 
+Unable to check whether schema `db_kampus` is empty
+---------------------------------------------------
+SQL State  : HY000
+Error Code : 1105
+Message    : Unknown error
+
+	at org.flywaydb.core.internal.database.base.Schema.empty(Schema.java:96) ~[flyway-core-5.2.4.jar:na]
+	at org.flywaydb.core.Flyway$1.execute(Flyway.java:1374) ~[flyway-core-5.2.4.jar:na]
+	at org.flywaydb.core.Flyway$1.execute(Flyway.java:1356) ~[flyway-core-5.2.4.jar:na]
+	at org.flywaydb.core.Flyway.execute(Flyway.java:1711) ~[flyway-core-5.2.4.jar:na]
+	at org.flywaydb.core.Flyway.migrate(Flyway.java:1356) ~[flyway-core-5.2.4.jar:na]
+	at org.springframework.boot.autoconfigure.flyway.FlywayMigrationInitializer.afterPropertiesSet(FlywayMigrationInitializer.java:65) ~[spring-boot-autoconfigure-2.1.6.RELEASE.jar:2.1.6.RELEASE]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.invokeInitMethods(AbstractAutowireCapableBeanFactory.java:1837) ~[spring-beans-5.1.8.RELEASE.jar:5.1.8.RELEASE]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1774) ~[spring-beans-5.1.8.RELEASE.jar:5.1.8.RELEASE]
+	... 23 common frames omitted
+Caused by: java.sql.SQLException: Unknown error
+	at com.mysql.cj.jdbc.exceptions.SQLError.createSQLException(SQLError.java:129) ~[mysql-connector-java-8.0.16.jar:8.0.16]
+	at com.mysql.cj.jdbc.exceptions.SQLError.createSQLException(SQLError.java:97) ~[mysql-connector-java-8.0.16.jar:8.0.16]
+	at com.mysql.cj.jdbc.exceptions.SQLExceptionsMapping.translateException(SQLExceptionsMapping.java:122) ~[mysql-connector-java-8.0.16.jar:8.0.16]
+	at com.mysql.cj.jdbc.ClientPreparedStatement.executeInternal(ClientPreparedStatement.java:955) ~[mysql-connector-java-8.0.16.jar:8.0.16]
+	at com.mysql.cj.jdbc.ClientPreparedStatement.executeQuery(ClientPreparedStatement.java:1005) ~[mysql-connector-java-8.0.16.jar:8.0.16]
+	at com.zaxxer.hikari.pool.ProxyPreparedStatement.executeQuery(ProxyPreparedStatement.java:52) ~[HikariCP-3.2.0.jar:na]
+	at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.executeQuery(HikariProxyPreparedStatement.java) ~[HikariCP-3.2.0.jar:na]
+	at org.flywaydb.core.internal.jdbc.JdbcTemplate.queryForInt(JdbcTemplate.java:139) ~[flyway-core-5.2.4.jar:na]
+	at org.flywaydb.core.internal.database.mysql.MySQLSchema.doEmpty(MySQLSchema.java:49) ~[flyway-core-5.2.4.jar:na]
+	at org.flywaydb.core.internal.database.base.Schema.empty(Schema.java:94) ~[flyway-core-5.2.4.jar:na]
+	... 30 common frames omitted
+
+
+
+
+index.html
+------
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sd="http://io.github.jpenren/sd">
+<head>
+    <meta charset="UTF-8">
+    <title>Selamat Datang Spring Boot</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+          integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+</head>
+<body>
+<div class="mx-auto" style="width: 600px;">
+    <h2>Belajar Web Menggunakan Spring Boot</h2>
+</div>
+
+<div class="container">
+    <h4>List Mahasiswa</h4>
+    <table class="table table-striped table-hover">
+        <thead>
+        <tr>
+            <th>Nim</th>
+            <th>Nama</th>
+            <th>IPK</th>
+            <th>Jurusan</th>
+            <th>Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="mhs : ${mahasiswas}">
+            <td th:text="${mhs.nim}">&nbsp;</td>
+            <td th:text="${mhs.nama}">&nbsp;</td>
+            <td th:text="${mhs.ipk}">&nbsp;</td>
+            <td th:text="${mhs.jurusan}">&nbsp;</td>
+            <td>
+                <form method="get" th:action="@{/mahasiswa/form}" class="d-inline">
+                    <button type="submit" name="id" th:value="${mhs.id}" class="btn btn-link btn-sm">Edit</button>
+                </form>
+                |                
+                <a th:href="@{/mahasiswa/delete(id=${mhs.id})}" class="btn btn-link btn-sm" id="deleteButton">Delete</a>                
+                |
+                <form method="get" th:action="@{/mahasiswa/detail_form(id=${mhs.id})}" class="d-inline">
+                    <button type="submit" name="id" th:value="${mhs.id}" class="btn btn-link btn-sm">Detail</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <div class="row">
+        <div class="col-sm-6">
+            <div sd:pagination-summary="">info</div>
+        </div>
+        <div class="col-sm-6">
+            <nav class="pull-right">
+                <ul class="pagination" sd:pagination-split="7" sd:pagination="full">
+                    <!-- Pagination created by SpringDataDialect, this content is just for mockup -->
+                    <li class="disabled"><a href="#" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a>
+                    </li>
+                    <li class="active"><a href="#">1 <span class="sr-only">(current)</span></a></li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+    <a th:href="@{/mahasiswa/form}" class="btn btn-primary">Tambah</a>
+    
+    <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Hapus data mahasiswa</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    Apakah Anda yakin akan menghapus data?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Tidak</button>
+                    <a href="" class="btn btn-primary" id="delRef">Ya</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+        crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+        crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+        crossorigin="anonymous"></script>
+
+<script type="text/javascript">
+	$('document').ready(function() {
+    	$('.table #deleteButton').on('click', function(event) {
+    		event.preventDefault();
+    		var href = $(this).attr('href');
+    		$('#deleteModal #delRef').attr('href', href);
+    		$('#deleteModal').modal();
+    	});
+   	});
+</script>
+</html>
+
+
+form.html
+-----
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Mahasiswa</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+          integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+</head>
+<body>
+<div class="container">
+    <h4 class="mt-3">Tambah/Edit Mahasiswa</h4>
+    <form method="post" th:object="${mahasiswa}" th:action="@{/mahasiswa/form}" class="needs-validation" novalidate>
+        <input type="hidden" th:field="*{id}">
+        <div class="form-group">
+            <label for="nim" class="col-form-label">Nim</label>
+            <input type="text" class="form-control" id="nim" th:field="*{nim}" placeholder="Nim mahasiswa" required>
+            <div class="invalid-feedback">
+                Nim tidak boleh kosong.
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="nama" class="col-form-label">Nama</label>
+            <input type="text" class="form-control" id="nama" th:field="*{nama}" placeholder="Nama mahasiswa"
+                   required>
+            <div class="invalid-feedback">
+                Nama tidak boleh kosong.
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="ipk" class="col-form-label">IPK</label>
+            <input type="number" step="any" class="form-control" id="ipk" th:field="*{ipk}"
+                   placeholder="IPK mahasiswa"
+                   required>
+        </div>
+        <div class="form-group">
+            <label for="jurusan" class="col-form-label">Jurusan</label>
+            <input type="text" class="form-control" id="jurusan" th:field="*{jurusan}"
+                   placeholder="Jurusan mahasiswa" required>
+            <div class="invalid-feedback">
+                Jurusan tidak boleh kosong.
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary mb-3">Submit</button>
+
+        <div th:if="${#fields.hasErrors('all')}">
+            <div class="form-group">
+                <div class="alert alert-warning alert-dismissible fade show">
+                    <label th:errors="*{all}">xxx</label>
+                    <button type="button" class="close" data-dismiss="alert">&times;</button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+</body>
+<script>
+    // Example starter JavaScript for disabling form submissions if there are invalid fields
+    (function () {
+        'use strict';
+        window.addEventListener('load', function () {
+            // Fetch all the forms we want to apply custom Bootstrap validation styles to
+            var forms = document.getElementsByClassName('needs-validation');
+            // Loop over them and prevent submission
+            var validation = Array.prototype.filter.call(forms, function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (form.checkValidity() === false) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                }, false);
+            });
+        }, false);
+    })();
+</script>
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+        crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+        crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+        crossorigin="anonymous"></script>
+</html>
+
+
+detail_form.html
+-----
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Detail Mahasiswa</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+          integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+</head>
+<body>
+<div class="container">
+    <h4 class="mb-3 mt-3">Detail Mahasiswa</h4>
+    <table class="table table-hover">
+        <tbody>
+        <tr>
+            <th scope="row">NIM</th>
+            <td th:text="${mahasiswa.nim}">&nbsp;</td>
+        </tr>
+        <tr>
+            <th scope="row">Nama</th>
+            <td th:text="${mahasiswa.nama}">&nbsp;</td>
+        </tr>
+        <tr>
+            <th scope="row">IPK</th>
+            <td th:text="${mahasiswa.ipk}">&nbsp;</td>
+        </tr>
+        <tr>
+            <th scope="row">Jurusan</th>
+            <td th:text="${mahasiswa.jurusan}">&nbsp;</td>
+        </tbody>
+    </table>
+    <a th:href="@{/index}" class="btn btn-primary">Kembali</a>
+</div>
+</body>
+</html>

@@ -1,0 +1,6 @@
+id\jampirojam\springboot\model\Product.class
+id\jampirojam\springboot\service\ProductService.class
+id\jampirojam\springboot\controller\ProductController.class
+id\jampirojam\springboot\service\impl\ProductServiceImpl.class
+id\jampirojam\springboot\SpringAsignOjam.class
+id\jampirojam\springboot\repository\ProductRepository.class
