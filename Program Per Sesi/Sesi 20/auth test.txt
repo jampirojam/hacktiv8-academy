@@ -1,0 +1,398 @@
+
+sesi 20 basic auth with database login
+
+application.properties
+------------------------------------------------------------------------
+# SERVER CONFIG
+server.port=8080
+
+#MySQL Connection
+spring.datasource.url=jdbc:mysql://localhost:3306/h8_produk?useSSL=false&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC
+spring.datasource.username=root
+spring.datasource.password=root
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+
+
+#HikariCP
+spring.datasource.hikari.connection-timeout=20000
+spring.datasource.hikari.minimum-idle=5
+spring.datasource.hikari.maximum-pool-size=12
+spring.datasource.hikari.idle-timeout=300000
+spring.datasource.hikari.max-lifetime=12000
+spring.datasource.hikari.auto-commit=true
+
+#JPA CONFIGURATION
+spring.jpa.database-platform=org.hibernate.dialect.MySQL5Dialect
+spring.jpa.show-sql=true
+spring.jpa.generate-ddl=true
+spring.jpa.hibernate.ddl-auto=update
+
+#Security Auth
+spring.security.user.name=user
+spring.security.user.password=@123
+
+
+sesuaikan versi pada pom 
+------------------------------------------------------------------------------------------------------------------------------------------------------
+<parent>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-starter-parent</artifactId>
+  <version>2.4.2</version>
+  <relativePath/> <!-- lookup parent from repository -->
+</parent>
+  
+<properties>
+  <java.version>1.8</java.version>
+</properties>
+
+<dependency>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-starter-security</artifactId>
+</dependency>
+
+
+
+security basic auth > buat file controller  HomeController.java
+------------------------------------------------------------------------------------------------------------------------------------------------------
+@RestController
+@RequestMapping("/api")
+public class HomeController {
+	
+	@GetMapping("/index")
+	public String index() {
+		return "Welcome...";
+	}
+	
+	@RequestMapping(value="/logout", method = RequestMethod.GET)
+	public String logoutPage (HttpServletRequest request, HttpServletResponse response) {
+		HttpSession session= request.getSession(false);
+		SecurityContextHolder.clearContext();
+    	session= request.getSession(false);
+	    if(session != null) {
+	        session.invalidate();
+	    }
+	    for(Cookie cookie : request.getCookies()) {
+	        cookie.setMaxAge(0);
+	    }
+
+	    return "Berhasil Logout...";
+	}
+}
+
+
+buat file controller ManagementController.java
+------------------------------------------------------------------------------------------------------------------------------------------------------
+@RestController
+@RequestMapping("api/management")
+public class ManagementController {
+	
+    private UserRepository userRepository;
+
+    public ManagementController(UserRepository userRepository){
+        this.userRepository = userRepository;
+    }
+
+    @GetMapping("/test1")
+    public String test1(){
+        return "API Test 1";
+    }
+
+    @GetMapping("/test2")
+    public String test2(){
+        return "API Test 2";
+    }
+    
+    @GetMapping("")
+    public List<User> users(){
+        return this.userRepository.findAll();
+    }
+
+}
+
+
+buat file controller ProfileController.java
+------------------------------------------------------------------------------------------------------------------------------------------------------
+@RestController
+@RequestMapping("api/profile")
+public class ProfileController {
+	
+    @GetMapping("/test1")
+    public String test1(){
+        return "API Test 1";
+    }
+    
+}
+
+buat file controller UserController.java
+------------------------------------------------------------------------------------------------------------------------------------------------------
+@RestController
+@RequestMapping("api/user")
+public class UserController {
+	
+    private UserRepository userRepository;
+
+    public UserController(UserRepository userRepository){
+        this.userRepository = userRepository;
+    }
+
+    @GetMapping("/test1")
+    public String test1(){
+        return "API Test 1";
+    }
+
+    @GetMapping("/test2")
+    public String test2(){
+        return "API Test 2";
+    }
+
+    @GetMapping("")
+    public List<User> users(){
+        return this.userRepository.findAll();
+    }
+
+}
+
+buat file Entity User.java
+------------------------------------------------------------------------------------------------------------------------------------------------------
+@Entity
+public class User {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private long id;
+
+    @Column(nullable = false)
+    private String username;
+
+    @Column(nullable = false)
+    private String password;
+
+    private int active;
+
+    private String roles = "";
+
+    private String permissions = "";
+
+    public User(String username, String password, String roles, String permissions){
+        this.username = username;
+        this.password = password;
+        this.roles = roles;
+        this.permissions = permissions;
+        this.active = 1;
+    }
+
+    protected User(){}
+
+    public long getId() {
+        return id;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public int getActive() {
+        return active;
+    }
+
+    public String getRoles() {
+        return roles;
+    }
+
+    public String getPermissions() {
+        return permissions;
+    }
+
+    public List<String> getRoleList(){
+        if(this.roles.length() > 0){
+            return Arrays.asList(this.roles.split(","));
+        }
+        return new ArrayList<>();
+    }
+
+    public List<String> getPermissionList(){
+        if(this.permissions.length() > 0){
+            return Arrays.asList(this.permissions.split(","));
+        }
+        return new ArrayList<>();
+    }
+}
+
+
+buat file repository UserRepository.java
+------------------------------------------------------------------------------------------------------------------------------------------------------
+@Repository
+public interface UserRepository extends JpaRepository<User, Long> {
+    User findByUsername(String username);
+}
+
+
+
+buat folder security > SecurityConfig.java
+------------------------------------------------------------------------------------------------------------------------------------------------------
+@Configuration
+public class SecurityConfig extends WebSecurityConfigurerAdapter {
+
+	private UserPrincipalDetailsService userPrincipalDetailsService;
+	
+	
+	public SecurityConfig(UserPrincipalDetailsService userPrincipalDetailsService) {
+	        this.userPrincipalDetailsService = userPrincipalDetailsService;
+	    }
+
+	@Override
+	protected void configure(AuthenticationManagerBuilder auth) {
+		auth.authenticationProvider(authenticationProvider());
+	}
+
+	@Override
+	protected void configure(HttpSecurity http) throws Exception {
+		http.httpBasic()
+			.and()
+				.authorizeRequests()
+				.antMatchers("/api/index").permitAll()
+				.antMatchers("/api/profile/**").authenticated()
+				.antMatchers("/api/product/**").hasRole("ADMIN")
+				.antMatchers("/api/management/**").hasAnyRole("ADMIN", "MANAGER")
+				.antMatchers("/api/user/test1").hasAuthority("ACCESS_TEST1")
+				.antMatchers("/api/user/test2").hasAuthority("ACCESS_TEST2")
+			.and()
+				.logout()
+				.logoutRequestMatcher(new AntPathRequestMatcher("/api/logout"))
+		        .deleteCookies("JSESSIONID")
+			    .invalidateHttpSession(true)
+		    .and()
+		    	.csrf().disable();
+	}
+
+	@Bean
+	DaoAuthenticationProvider authenticationProvider() {
+		DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
+		daoAuthenticationProvider.setPasswordEncoder(passwordEncoder());
+        daoAuthenticationProvider.setUserDetailsService(this.userPrincipalDetailsService);
+		return daoAuthenticationProvider;
+	}
+
+	@Bean
+	PasswordEncoder passwordEncoder() {
+		return new BCryptPasswordEncoder();
+	}
+}
+
+
+
+buat file security UserPrincipal.java
+------------------------------------------------------------------------------------------------------------------------------------------------------
+public class UserPrincipal implements UserDetails {
+	
+    private static final long serialVersionUID = 1L;
+    
+	private User user;
+
+    public UserPrincipal(User user){
+        this.user = user;
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        List<GrantedAuthority> authorities = new ArrayList<>();
+
+        // Extract list of permissions (name)
+        this.user.getPermissionList().forEach(p -> {
+            GrantedAuthority authority = new SimpleGrantedAuthority(p);
+            authorities.add(authority);
+        });
+
+        // Extract list of roles (ROLE_name)
+        this.user.getRoleList().forEach(r -> {
+            GrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + r);
+            authorities.add(authority);
+        });
+
+        return authorities;
+    }
+
+    @Override
+    public String getPassword() {
+        return this.user.getPassword();
+    }
+
+    @Override
+    public String getUsername() {
+        return this.user.getUsername();
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return this.user.getActive() == 1;
+    }
+}
+
+buat file security UserPrincipalDetailsService.java
+------------------------------------------------------------------------------------------------------------------------------------------------------
+@Service
+public class UserPrincipalDetailsService implements UserDetailsService {
+	
+    private UserRepository userRepository;
+
+    public UserPrincipalDetailsService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+
+
+    @Override
+    public UserDetails loadUserByUsername(String s) throws UsernameNotFoundException {
+        User user = this.userRepository.findByUsername(s);
+        UserPrincipal userPrincipal = new UserPrincipal(user);
+
+        return userPrincipal;
+    }
+}
+
+buat file service UserServiceInit.java
+------------------------------------------------------------------------------------------------------------------------------------------------------
+@Service
+public class UserServiceInit implements CommandLineRunner {
+	
+    private UserRepository userRepository;
+    private PasswordEncoder passwordEncoder;
+
+    public UserServiceInit(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
+
+    @Override
+    public void run(String... args) {
+        // Delete all
+        this.userRepository.deleteAll();
+
+        // Crete users
+        User admin = new User("admin",passwordEncoder.encode("admin123"),"ADMIN","ACCESS_TEST1,ACCESS_TEST2");
+        User manager = new User("manager",passwordEncoder.encode("manager123"),"MANAGER","ACCESS_TEST1");
+
+        List<User> users = Arrays.asList(admin,manager);
+
+        // Save to db
+        this.userRepository.saveAll(users);
+    }
+}

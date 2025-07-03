@@ -1,0 +1,26 @@
+-------------------------------------------------------------------------------
+Test set: ProductServiceTest
+-------------------------------------------------------------------------------
+Tests run: 5, Failures: 1, Errors: 1, Skipped: 0, Time elapsed: 0.302 s <<< FAILURE! - in ProductServiceTest
+testProductByIdWithNullDataFromDB  Time elapsed: 0.007 s  <<< ERROR!
+java.lang.RuntimeException: Product not found for id :: -1197142914416422607
+	at id.jampirojam.springboot.ProductServiceTest.testProductByIdWithNullDataFromDB(ProductServiceTest.java:68)
+
+testDeleteProduct  Time elapsed: 0.02 s  <<< FAILURE!
+org.mockito.exceptions.verification.WantedButNotInvoked: 
+
+Wanted but not invoked:
+productRepository.delete(
+    id.jampirojam.springboot.model.Product@8d7718e
+);
+-> at id.jampirojam.springboot.ProductServiceTest.testDeleteProduct(ProductServiceTest.java:90)
+
+However, there was exactly 1 interaction with this mock:
+productRepository.deleteById(
+    -8841520090237185693L
+);
+-> at id.jampirojam.springboot.service.impl.ProductServiceImpl.deleteApiById(ProductServiceImpl.java:86)
+
+
+	at id.jampirojam.springboot.ProductServiceTest.testDeleteProduct(ProductServiceTest.java:90)
+

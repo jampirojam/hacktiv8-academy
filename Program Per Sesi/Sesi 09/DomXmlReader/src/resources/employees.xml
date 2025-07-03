@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<employees>
+        <employee id="100">
+                <firstName>Lin</firstName>
+                <lastName>Jincai</lastName>
+                <location>Jakarta Pusat</location>
+        </employee>
+        <employee id="101">
+                <firstName>Guang</firstName>
+                <lastName>Shouwei</lastName>
+                <location>Gresik</location>
+        </employee>
+        <employee id="102">
+                <firstName>Machrush</firstName>
+                <lastName>Aliy</lastName>
+                <location>Tangerang Selatan</location>
+        </employee>
+        <employee id="103">
+                <firstName>Rickson</firstName>
+                <lastName>Fernando</lastName>
+                <location>Pontianak</location>
+        </employee>
+</employees>

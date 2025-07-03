@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<users>
+	<user id="100">
+        <firstName>Lin</firstName>
+        <lastName>Jincai</lastName>
+	</user>
+	<user id="101">
+        <firstName>Guang</firstName>
+        <lastName>Shouwei</lastName>
+	</user>
+	<user id="102">
+        <firstName>Machrush</firstName>
+        <lastName>Aliy</lastName>
+	</user>
+	<user id="103">
+        <firstName>Rickson</firstName>
+        <lastName>Wirawan</lastName>
+	</user>
+</users>

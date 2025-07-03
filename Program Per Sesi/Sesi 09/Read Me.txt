@@ -1,0 +1,2 @@
+Run Maven tanpa test
+mvn exec:java -Dexec.mainClass="com.ParsingXmlSax.module.Mail"

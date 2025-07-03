@@ -1,0 +1,20 @@
+public class Arit2 {
+    public static void main(String[] args) {
+        System.out.println("Hello, World!");
+        int x = 12, y = 8, tambah, kurang, kali, bagi, modulus;
+        tambah = x + y;
+        kurang = x - y;
+        kali = x * y;
+        bagi = x / y;
+        modulus = x % y;
+        System.out.format(
+                "Nilai X = %d\nNilai Y = %d\nHasil Tambah: %d\nHasil Kurang: %d\nHasil Kali: %d\nHasil Bagi: %d\nHasil Modulus: %d\n",
+                x,
+                y, tambah, kurang, kali, bagi, modulus);
+        if (tambah >= 0 && kurang >= 0 && kali >= 0 && bagi >= 0 && modulus >= 0) {
+            System.out.println("Semua bilangan bernilai positif");
+        } else {
+            System.out.println("Ada bilangan yang bernilai negatif");
+        }
+    }
+}

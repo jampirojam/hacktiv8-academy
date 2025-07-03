@@ -1,0 +1,104 @@
+// controller
+
+package com.example.demo.controller;
+
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class SpringController {
+
+	@RequestMapping(method = RequestMethod.GET, value = "/api/hactive8")
+	public String sayHello() {
+		return "Swagger Hello World";
+	}
+}
+
+
+// Swagger
+
+package com.example.demo.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import com.google.common.base.Predicate;
+
+import springfox.documentation.builders.ApiInfoBuilder;
+import springfox.documentation.service.ApiInfo;
+import springfox.documentation.spi.DocumentationType;
+import springfox.documentation.spring.web.plugins.Docket;
+import springfox.documentation.swagger2.annotations.EnableSwagger2;
+
+import static springfox.documentation.builders.PathSelectors.regex;
+import static com.google.common.base.Predicates.or;
+
+@Configuration
+@EnableSwagger2
+public class SwaggerConfig {
+
+	@Bean
+	public Docket postsApi() {
+		return new Docket(DocumentationType.SWAGGER_2).groupName("public-api")
+				.apiInfo(apiInfo()).select().paths(postPaths()).build();
+	}
+
+	private Predicate<String> postPaths() {
+		return or(regex("/api/posts.*"), regex("/api/hactive8.*"));
+	}
+
+	private ApiInfo apiInfo() {
+		return new ApiInfoBuilder().title("Test API")
+				.description("Test API reference for developers")
+				.license("Apache License Version 2.0")
+				.licenseUrl("https://www.apache.org/licenses/LICENSE-2.0")
+				.version("1.0")
+				.build();
+	}
+}
+
+// test
+
+package com.example.demo;
+	
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
+
+@RunWith(SpringRunner.class)
+@SpringBootTest
+public class DemoSpringBroApplicationTests {
+
+	@Test
+	public void contextLoads() {
+	}
+
+}
+
+// properties
+
+
+# SERVER CONFIG
+server.port=8080
+
+#MySQL Connection
+spring.datasource.url=jdbc:postgresql://localhost:5432/company
+spring.datasource.username=jampirojam
+spring.datasource.password=rojam456
+spring.datasource.driver-class-name=org.postgresql.Driver
+
+#HikariCP
+spring.datasource.hikari.connection-timeout=20000
+spring.datasource.hikari.minimum-idle=5
+spring.datasource.hikari.maximum-pool-size=12
+spring.datasource.hikari.idle-timeout=300000
+spring.datasource.hikari.max-lifetime=12000
+spring.datasource.hikari.auto-commit=true
+
+#JPA CONFIGURATION
+spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
+spring.jpa.show-sql=true
+spring.jpa.generate-ddl=false
+spring.jpa.hibernate.ddl-auto=none
